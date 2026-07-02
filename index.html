@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>3D Animal Model Viewer</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="viewport-wrap" id="dropZone">
+        <canvas id="viewerCanvas" aria-label="3D model viewport"></canvas>
+        <div class="projection-card">
+          <div class="projection-title">投影面轮廓</div>
+          <canvas id="projectionCanvas" width="220" height="160" aria-label="Projected silhouette preview"></canvas>
+        </div>
+        <div class="drop-overlay" id="dropOverlay">
+          <div class="drop-card">
+            <strong>拖入 3D 模型文件</strong>
+            <span>支持 OBJ、STL、GLB/glTF；OBJ 可同时选择 MTL 和贴图</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <header>
+          <h1>3D 模型查看器</h1>
+          <p>选择或拖入模型后即可在浏览器中查看、旋转、缩放和平移。</p>
+        </header>
+
+        <div class="file-box">
+          <label class="file-button">
+            选择 3D 文件
+            <input id="fileInput" type="file" multiple accept=".obj,.mtl,.png,.jpg,.jpeg,.stl,.glb,.gltf,.bin,.fbx,.usdz" />
+          </label>
+          <label class="file-button secondary">
+            选择整个文件夹
+            <input id="folderInput" type="file" webkitdirectory multiple />
+          </label>
+        </div>
+
+        <div class="status" id="status">等待选择模型文件。</div>
+
+        <dl class="metadata">
+          <dt>文件</dt><dd id="metaFile">-</dd>
+          <dt>格式</dt><dd id="metaFormat">-</dd>
+          <dt>顶点</dt><dd id="metaVertices">-</dd>
+          <dt>三角面</dt><dd id="metaTriangles">-</dd>
+          <dt>表面积</dt><dd id="metaSurfaceArea">-</dd>
+          <dt>体积</dt><dd id="metaVolume">-</dd>
+          <dt>贴图</dt><dd id="metaTexture">-</dd>
+        </dl>
+
+        <section class="sun-panel">
+          <h2>太阳位置</h2>
+          <div class="angle-grid">
+            <label>
+              方位角
+              <input id="sunAzimuth" type="number" value="45" min="0" max="360" step="1" />
+            </label>
+            <label>
+              高度角
+              <input id="sunElevation" type="number" value="35" min="-90" max="90" step="1" />
+            </label>
+          </div>
+        </section>
+
+        <section class="scale-panel">
+          <h2>比例尺标定</h2>
+          <button class="calibration-button" id="calibrationToggle" type="button">选择两个标定点</button>
+          <div class="calibration-readout">
+            <span>模型线段</span><strong id="modelSegmentLength">-</strong>
+            <span>换算比例</span><strong id="scaleFactor">-</strong>
+          </div>
+          <div class="scale-grid">
+            <label>
+              真实长度
+              <input id="realLengthInput" type="number" min="0" step="0.01" placeholder="例如 12.4" />
+            </label>
+            <label>
+              单位
+              <input id="realUnitInput" type="text" value="cm" />
+            </label>
+          </div>
+          <dl class="real-metadata">
+            <dt>真实表面积</dt><dd id="realSurfaceArea">-</dd>
+            <dt>真实体积</dt><dd id="realVolume">-</dd>
+          </dl>
+        </section>
+
+        <section class="controls">
+          <h2>操作</h2>
+          <p>左键拖动旋转；右键或 Shift+左键拖动平移；滚轮缩放；双击重置视角。</p>
+        </section>
+      </aside>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
