@@ -100,8 +100,29 @@ body {
 }
 
 h1 {
-  margin: 0 0 6px;
+  margin: 0;
   font-size: 23px;
+}
+
+.panel-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.language-toggle {
+  flex: 0 0 auto;
+  min-width: 48px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: #f8fafc;
+  color: #0f172a;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
 }
 
 h2 {

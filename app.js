@@ -38,6 +38,7 @@
   const metaTexture = document.getElementById("metaTexture");
   const sunAzimuthInput = document.getElementById("sunAzimuth");
   const sunElevationInput = document.getElementById("sunElevation");
+  const languageToggle = document.getElementById("languageToggle");
   const calibrationToggle = document.getElementById("calibrationToggle");
   const modelSegmentLength = document.getElementById("modelSegmentLength");
   const scaleFactor = document.getElementById("scaleFactor");
@@ -46,11 +47,110 @@
   const realSurfaceArea = document.getElementById("realSurfaceArea");
   const realVolume = document.getElementById("realVolume");
 
-  const gl = canvas.getContext("webgl", { antialias: true });
-  if (!gl) {
-    setStatus("当前浏览器不支持 WebGL，无法显示 3D 模型。");
-    return;
-  }
+  const translations = {
+    zh: {
+      appTitle: "3D 模型查看器",
+      appIntro: "选择或拖入模型后即可在浏览器中查看、旋转、缩放和平移。",
+      projectionTitle: "投影面轮廓",
+      dropTitle: "拖入 3D 模型文件",
+      dropSubtitle: "支持 OBJ、STL、GLB/glTF；OBJ 可同时选择 MTL 和贴图",
+      chooseFiles: "选择 3D 文件",
+      chooseFolder: "选择整个文件夹",
+      statusWaiting: "等待选择模型文件。",
+      metaFile: "文件",
+      metaFormat: "格式",
+      metaVertices: "顶点",
+      metaTriangles: "三角面",
+      metaSurfaceArea: "表面积",
+      metaVolume: "体积",
+      metaTexture: "贴图",
+      sunTitle: "太阳位置",
+      sunAzimuth: "方位角",
+      sunElevation: "高度角",
+      scaleTitle: "比例尺标定",
+      calibrationStart: "选择两个标定点",
+      calibrationActive: "正在选择标定点",
+      modelSegment: "模型线段",
+      scaleFactor: "换算比例",
+      realLength: "真实长度",
+      realLengthPlaceholder: "例如 12.4",
+      unit: "单位",
+      realSurfaceArea: "真实表面积",
+      realVolume: "真实体积",
+      controlsTitle: "操作",
+      controlsText: "左键拖动旋转；右键或 Shift+左键拖动平移；滚轮缩放；双击重置视角。",
+      textureLoaded: "已加载",
+      textureUnused: "未使用",
+      projectionEmpty: "加载模型后显示",
+      statusWebglUnsupported: "当前浏览器不支持 WebGL，无法显示 3D 模型。",
+      statusNoModel: "没有找到可加载的 3D 文件。请选择 OBJ、STL、GLB 或 glTF。",
+      statusReading: "正在读取 {name} ...",
+      statusUnsupportedKnown: "{format} 已识别，但当前无依赖版本尚不能直接加载。请优先选择同一模型的 OBJ、STL 或 GLB 文件。",
+      statusUnsupported: "暂不支持 {format} 格式。",
+      statusLoaded: "模型已加载。可以旋转、平移和缩放查看。",
+      statusLoadFailed: "加载失败：{message}",
+      statusCalibrationOn: "标定模式已开启：请在模型表面依次点击两个点。再次点击按钮可退出标定模式。",
+      statusCalibrationOff: "标定模式已关闭。可以继续旋转、平移和缩放查看模型。",
+      statusCalibrationNeedModel: "请先加载 3D 模型，再进行比例尺标定。",
+      statusCalibrationMiss: "没有点到模型表面，请在模型可见区域内重新点击。",
+      statusCalibrationFirst: "已选择第 1 个标定点。请继续点击第 2 个点。",
+      statusCalibrationSecond: "已选择两个标定点。请输入这条线段的真实长度。",
+      errorEmptyMesh: "模型中没有可绘制的三角面。请尝试选择 OBJ、STL 或未压缩的 GLB/glTF 文件。",
+      errorInvalidCoordinates: "模型坐标包含无效数值，无法显示。",
+      modelUnit: "模型单位",
+    },
+    en: {
+      appTitle: "3D Model Viewer",
+      appIntro: "Select or drop a model to inspect, rotate, zoom, and pan it in the browser.",
+      projectionTitle: "Projected Silhouette",
+      dropTitle: "Drop 3D Model Files",
+      dropSubtitle: "Supports OBJ, STL, and GLB/glTF; OBJ can include MTL and texture files",
+      chooseFiles: "Choose 3D Files",
+      chooseFolder: "Choose Folder",
+      statusWaiting: "Waiting for model files.",
+      metaFile: "File",
+      metaFormat: "Format",
+      metaVertices: "Vertices",
+      metaTriangles: "Triangles",
+      metaSurfaceArea: "Surface area",
+      metaVolume: "Volume",
+      metaTexture: "Texture",
+      sunTitle: "Sun Position",
+      sunAzimuth: "Azimuth",
+      sunElevation: "Elevation",
+      scaleTitle: "Scale Calibration",
+      calibrationStart: "Select Two Points",
+      calibrationActive: "Selecting Points",
+      modelSegment: "Model segment",
+      scaleFactor: "Scale factor",
+      realLength: "Real length",
+      realLengthPlaceholder: "e.g. 12.4",
+      unit: "Unit",
+      realSurfaceArea: "Real surface area",
+      realVolume: "Real volume",
+      controlsTitle: "Controls",
+      controlsText: "Left drag to rotate; right drag or Shift + left drag to pan; wheel to zoom; double click to reset.",
+      textureLoaded: "Loaded",
+      textureUnused: "Not used",
+      projectionEmpty: "Load a model first",
+      statusWebglUnsupported: "This browser does not support WebGL, so the 3D model cannot be displayed.",
+      statusNoModel: "No loadable 3D file was found. Please choose OBJ, STL, GLB, or glTF.",
+      statusReading: "Reading {name} ...",
+      statusUnsupportedKnown: "{format} is recognized, but this dependency-free version cannot load it directly yet. Please use the same model exported as OBJ, STL, or GLB.",
+      statusUnsupported: "{format} is not supported yet.",
+      statusLoaded: "Model loaded. You can rotate, pan, and zoom it.",
+      statusLoadFailed: "Load failed: {message}",
+      statusCalibrationOn: "Calibration mode is on: click two points on the model surface. Click the button again to leave calibration mode.",
+      statusCalibrationOff: "Calibration mode is off. You can continue rotating, panning, and zooming the model.",
+      statusCalibrationNeedModel: "Please load a 3D model before calibrating scale.",
+      statusCalibrationMiss: "No model surface was hit. Click again inside the visible model area.",
+      statusCalibrationFirst: "First calibration point selected. Click a second point.",
+      statusCalibrationSecond: "Two calibration points selected. Enter the real length of this segment.",
+      errorEmptyMesh: "The model has no drawable triangles. Try choosing an OBJ, STL, or uncompressed GLB/glTF file.",
+      errorInvalidCoordinates: "The model contains invalid coordinate values and cannot be displayed.",
+      modelUnit: "model unit",
+    },
+  };
 
   const state = {
     mesh: null,
@@ -70,7 +170,16 @@
     scaleFactor: null,
     projectionDirty: true,
     projectionLastUpdate: 0,
+    language: localStorage.getItem("viewerLanguage") || "zh",
+    statusKey: "statusWaiting",
+    statusVars: {},
   };
+
+  const gl = canvas.getContext("webgl", { antialias: true });
+  if (!gl) {
+    setStatusKey("statusWebglUnsupported");
+    return;
+  }
 
   const program = createProgram(
     `
@@ -179,6 +288,7 @@
 
   fileInput.addEventListener("change", () => loadFiles(Array.from(fileInput.files)));
   folderInput.addEventListener("change", () => loadFiles(Array.from(folderInput.files)));
+  languageToggle.addEventListener("click", toggleLanguage);
   sunAzimuthInput.addEventListener("input", updateSunFromInputs);
   sunElevationInput.addEventListener("input", updateSunFromInputs);
   calibrationToggle.addEventListener("click", toggleCalibrationMode);
@@ -252,6 +362,7 @@
 
   canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
+  applyLanguage();
   requestAnimationFrame(draw);
 
   async function loadFiles(files) {
@@ -259,12 +370,12 @@
     const index = buildFileIndex(files);
     const main = chooseMainModelFile(files);
     if (!main) {
-      setStatus("没有找到可加载的 3D 文件。请选择 OBJ、STL、GLB 或 glTF。");
+      setStatusKey("statusNoModel");
       return;
     }
 
     const ext = extensionOf(main.name);
-    setStatus(`正在读取 ${main.name} ...`);
+    setStatusKey("statusReading", { name: main.name });
 
     try {
       let loaded;
@@ -277,10 +388,10 @@
       } else if (ext === "gltf") {
         loaded = await loadGltf(main, index);
       } else if (ext === "fbx" || ext === "usdz") {
-        setStatus(`${ext.toUpperCase()} 已识别，但当前无依赖版本尚不能直接加载。请优先选择同一模型的 OBJ、STL 或 GLB 文件。`);
+        setStatusKey("statusUnsupportedKnown", { format: ext.toUpperCase() });
         return;
       } else {
-        setStatus(`暂不支持 ${ext || "未知"} 格式。`);
+        setStatusKey("statusUnsupported", { format: ext || "unknown" });
         return;
       }
 
@@ -300,12 +411,12 @@
       metaTriangles.textContent = String(state.mesh.triangleCount);
       metaSurfaceArea.textContent = formatMetric(state.mesh.surfaceArea, "unit²");
       metaVolume.textContent = formatMetric(state.mesh.volume, "unit³");
-      metaTexture.textContent = loaded.textureImage ? "已加载" : "未使用";
+      metaTexture.textContent = t(loaded.textureImage ? "textureLoaded" : "textureUnused");
       resetCalibration();
-      setStatus("模型已加载。可以旋转、平移和缩放查看。");
+      setStatusKey("statusLoaded");
     } catch (error) {
       console.error(error);
-      setStatus(`加载失败：${error.message}`);
+      setStatusKey("statusLoadFailed", { message: error.message });
     }
   }
 
@@ -584,7 +695,7 @@
   function normalizeMesh(mesh) {
     const positions = mesh.positions.slice();
     if (positions.length < 9) {
-      throw new Error("模型中没有可绘制的三角面。请尝试选择 OBJ、STL 或未压缩的 GLB/glTF 文件。");
+      throw new Error(t("errorEmptyMesh"));
     }
     const rawMetrics = computeMeshMetrics(positions);
     const normals = mesh.normals.length === positions.length ? mesh.normals.slice() : computeNormals(positions);
@@ -602,7 +713,7 @@
     }
 
     if (!min.every(Number.isFinite) || !max.every(Number.isFinite)) {
-      throw new Error("模型坐标包含无效数值，无法显示。");
+      throw new Error(t("errorInvalidCoordinates"));
     }
 
     const center = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
@@ -868,23 +979,23 @@
   function toggleCalibrationMode() {
     state.calibrationActive = !state.calibrationActive;
     calibrationToggle.classList.toggle("active", state.calibrationActive);
-    calibrationToggle.textContent = state.calibrationActive ? "正在选择标定点" : "选择两个标定点";
+    calibrationToggle.textContent = t(state.calibrationActive ? "calibrationActive" : "calibrationStart");
     if (state.calibrationActive) {
-      setStatus("标定模式已开启：请在模型表面依次点击两个点。再次点击按钮可退出标定模式。");
+      setStatusKey("statusCalibrationOn");
     } else if (state.mesh) {
-      setStatus("标定模式已关闭。可以继续旋转、平移和缩放查看模型。");
+      setStatusKey("statusCalibrationOff");
     }
   }
 
   function pickCalibrationPoint(event) {
     if (!state.mesh) {
-      setStatus("请先加载 3D 模型，再进行比例尺标定。");
+      setStatusKey("statusCalibrationNeedModel");
       return;
     }
 
     const hit = pickMeshPoint(event);
     if (!hit) {
-      setStatus("没有点到模型表面，请在模型可见区域内重新点击。");
+      setStatusKey("statusCalibrationMiss");
       return;
     }
 
@@ -896,13 +1007,13 @@
     state.calibrationPoints.push(hit.localPoint);
 
     if (state.calibrationPoints.length === 1) {
-      setStatus("已选择第 1 个标定点。请继续点击第 2 个点。");
+      setStatusKey("statusCalibrationFirst");
     } else {
       const a = state.calibrationPoints[0];
       const b = state.calibrationPoints[1];
       const normalizedLength = distance(a, b);
       state.modelSegmentLength = normalizedLength * state.mesh.modelUnitPerNormalizedUnit;
-      setStatus("已选择两个标定点。请输入这条线段的真实长度。");
+      setStatusKey("statusCalibrationSecond");
     }
     updateCalibrationReadout();
   }
@@ -984,7 +1095,7 @@
       return;
     }
 
-    modelSegmentLength.textContent = formatMetric(state.modelSegmentLength, "model unit");
+    modelSegmentLength.textContent = formatMetric(state.modelSegmentLength, t("modelUnit"));
     const realLength = Number(realLengthInput.value);
     if (!Number.isFinite(realLength) || realLength <= 0) {
       state.scaleFactor = null;
@@ -995,7 +1106,7 @@
     }
 
     state.scaleFactor = realLength / state.modelSegmentLength;
-    scaleFactor.textContent = `${formatNumber(state.scaleFactor)} ${unit}/model unit`;
+    scaleFactor.textContent = `${formatNumber(state.scaleFactor)} ${unit}/${t("modelUnit")}`;
     realSurfaceArea.textContent = formatMetric(state.mesh.surfaceArea * state.scaleFactor * state.scaleFactor, `${unit}²`);
     realVolume.textContent = formatMetric(state.mesh.volume * state.scaleFactor * state.scaleFactor * state.scaleFactor, `${unit}³`);
   }
@@ -1132,7 +1243,7 @@
       projectionCtx.fillStyle = "rgba(219, 234, 254, 0.74)";
       projectionCtx.font = "14px Segoe UI, Arial";
       projectionCtx.textAlign = "center";
-      projectionCtx.fillText("加载模型后显示", width / 2, height / 2 + 5);
+      projectionCtx.fillText(t("projectionEmpty"), width / 2, height / 2 + 5);
       return;
     }
 
@@ -1454,8 +1565,44 @@
     return dot >= 0 ? clean.slice(dot + 1) : "";
   }
 
-  function setStatus(message) {
-    statusEl.textContent = message;
+  function toggleLanguage() {
+    state.language = state.language === "zh" ? "en" : "zh";
+    localStorage.setItem("viewerLanguage", state.language);
+    applyLanguage();
+  }
+
+  function applyLanguage() {
+    document.documentElement.lang = state.language === "zh" ? "zh-CN" : "en";
+    languageToggle.textContent = state.language === "zh" ? "EN" : "中";
+    for (const element of document.querySelectorAll("[data-i18n]")) {
+      element.textContent = t(element.dataset.i18n);
+    }
+    for (const element of document.querySelectorAll("[data-i18n-placeholder]")) {
+      element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+    }
+    calibrationToggle.textContent = t(state.calibrationActive ? "calibrationActive" : "calibrationStart");
+    statusEl.textContent = t(state.statusKey, state.statusVars);
+    if (state.mesh) {
+      metaTexture.textContent = state.texture ? t("textureLoaded") : t("textureUnused");
+    }
+    updateCalibrationReadout();
+    state.projectionDirty = true;
+  }
+
+  function setStatusKey(key, vars = {}) {
+    state.statusKey = key;
+    state.statusVars = vars;
+    statusEl.textContent = t(key, vars);
+  }
+
+  function t(key, vars = {}) {
+    const dictionary = translations[state.language] || translations.zh;
+    const fallback = translations.zh[key] || key;
+    let text = dictionary[key] || fallback;
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.replaceAll(`{${name}}`, value);
+    }
+    return text;
   }
 
   function sub(a, b) {
