@@ -68,6 +68,8 @@
     calibrationPoints: [],
     modelSegmentLength: null,
     scaleFactor: null,
+    projectionDirty: true,
+    projectionLastUpdate: 0,
   };
 
   const program = createProgram(
@@ -224,11 +226,13 @@
       const pitch = quatFromAxisAngle([1, 0, 0], dy * 0.014);
       state.orientation = quatNormalize(quatMultiply(pitch, quatMultiply(yaw, state.orientation)));
     }
+    state.projectionDirty = true;
     state.lastPointer = [event.clientX, event.clientY];
   });
 
   canvas.addEventListener("pointerup", (event) => {
     state.dragging = false;
+    state.projectionDirty = true;
     try {
       canvas.releasePointerCapture(event.pointerId);
     } catch (_) {
@@ -243,6 +247,7 @@
 
   canvas.addEventListener("dblclick", () => {
     resetCamera();
+    state.projectionDirty = true;
   });
 
   canvas.addEventListener("contextmenu", (event) => event.preventDefault());
@@ -286,6 +291,8 @@
         state.texture = null;
       }
       resetCamera();
+      state.projectionDirty = true;
+      state.projectionLastUpdate = performance.now();
       dropOverlay.classList.add("hidden");
       metaFile.textContent = main.name;
       metaFormat.textContent = ext.toUpperCase();
@@ -576,6 +583,9 @@
 
   function normalizeMesh(mesh) {
     const positions = mesh.positions.slice();
+    if (positions.length < 9) {
+      throw new Error("模型中没有可绘制的三角面。请尝试选择 OBJ、STL 或未压缩的 GLB/glTF 文件。");
+    }
     const rawMetrics = computeMeshMetrics(positions);
     const normals = mesh.normals.length === positions.length ? mesh.normals.slice() : computeNormals(positions);
     const uvs = mesh.uvs.length === (positions.length / 3) * 2 ? mesh.uvs.slice() : new Array((positions.length / 3) * 2).fill(0);
@@ -589,6 +599,10 @@
       max[0] = Math.max(max[0], positions[i]);
       max[1] = Math.max(max[1], positions[i + 1]);
       max[2] = Math.max(max[2], positions[i + 2]);
+    }
+
+    if (!min.every(Number.isFinite) || !max.every(Number.isFinite)) {
+      throw new Error("模型坐标包含无效数值，无法显示。");
     }
 
     const center = [(min[0] + max[0]) / 2, (min[1] + max[1]) / 2, (min[2] + max[2]) / 2];
@@ -846,7 +860,7 @@
 
     drawSunBeam(projection);
     drawSun(projection);
-    drawProjectionSilhouette();
+    maybeUpdateProjectionSilhouette();
 
     requestAnimationFrame(draw);
   }
@@ -1076,9 +1090,20 @@
     gl.disable(gl.BLEND);
   }
 
+  function maybeUpdateProjectionSilhouette() {
+    if (!state.projectionDirty) return;
+    if (state.dragging) return;
+    const now = performance.now();
+    if (now - state.projectionLastUpdate < 250) return;
+    state.projectionDirty = false;
+    state.projectionLastUpdate = now;
+    drawProjectionSilhouette();
+  }
+
   function updateSunFromInputs() {
     state.sunAzimuth = Number(sunAzimuthInput.value) || 0;
     state.sunElevation = Number(sunElevationInput.value) || 0;
+    state.projectionDirty = true;
   }
 
   function sunDirection() {
