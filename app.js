@@ -170,7 +170,7 @@
     scaleFactor: null,
     projectionDirty: true,
     projectionLastUpdate: 0,
-    language: localStorage.getItem("viewerLanguage") || "zh",
+    language: getStoredLanguage(),
     statusKey: "statusWaiting",
     statusVars: {},
   };
@@ -1567,7 +1567,7 @@
 
   function toggleLanguage() {
     state.language = state.language === "zh" ? "en" : "zh";
-    localStorage.setItem("viewerLanguage", state.language);
+    setStoredLanguage(state.language);
     applyLanguage();
   }
 
@@ -1600,9 +1600,27 @@
     const fallback = translations.zh[key] || key;
     let text = dictionary[key] || fallback;
     for (const [name, value] of Object.entries(vars)) {
-      text = text.replaceAll(`{${name}}`, value);
+      text = text.split(`{${name}}`).join(value);
     }
     return text;
+  }
+
+  function getStoredLanguage() {
+    try {
+      return localStorage.getItem("viewerLanguage") || "zh";
+    } catch (_) {
+      return "zh";
+    }
+  }
+
+  function setStoredLanguage(language) {
+    try {
+      localStorage.setItem("viewerLanguage", language);
+    } catch (_) {
+      // Some browsers restrict localStorage for file:// pages. The language
+      // switch should still work for the current session when persistence is
+      // unavailable.
+    }
   }
 
   function sub(a, b) {
