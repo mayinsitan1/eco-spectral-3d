@@ -14,12 +14,27 @@
           <div class="projection-title" data-i18n="projectionTitle">投影面轮廓</div>
           <canvas id="projectionCanvas" width="220" height="160" aria-label="Projected silhouette preview"></canvas>
         </div>
-        <div class="camera-pad" aria-label="Camera view controls">
-          <button class="camera-button camera-up" id="cameraPitchUp" type="button" title="纵向上转" data-i18n-title="cameraPitchUp">↑</button>
-          <button class="camera-button camera-left" id="cameraYawLeft" type="button" title="水平左转" data-i18n-title="cameraYawLeft">←</button>
-          <button class="camera-button camera-reset" id="cameraViewReset" type="button" title="重置相机视角" data-i18n-title="cameraReset">↺</button>
-          <button class="camera-button camera-right" id="cameraYawRight" type="button" title="水平右转" data-i18n-title="cameraYawRight">→</button>
-          <button class="camera-button camera-down" id="cameraPitchDown" type="button" title="纵向下转" data-i18n-title="cameraPitchDown">↓</button>
+        <div class="view-control-stack">
+          <div class="view-control-panel" aria-label="Model posture controls">
+            <div class="view-control-title" data-i18n="modelPostureTitle">调整模型姿态</div>
+            <div class="control-pad">
+              <button class="view-button control-up" id="modelPitchUp" type="button" title="模型纵向上转" data-i18n-title="modelPitchUp">↑</button>
+              <button class="view-button control-left" id="modelYawLeft" type="button" title="模型水平左转" data-i18n-title="modelYawLeft">←</button>
+              <button class="view-button control-reset" id="modelPostureReset" type="button" title="重置模型姿态" data-i18n-title="modelPostureReset">↺</button>
+              <button class="view-button control-right" id="modelYawRight" type="button" title="模型水平右转" data-i18n-title="modelYawRight">→</button>
+              <button class="view-button control-down" id="modelPitchDown" type="button" title="模型纵向下转" data-i18n-title="modelPitchDown">↓</button>
+            </div>
+          </div>
+          <div class="view-control-panel" aria-label="Camera view controls">
+            <div class="view-control-title" data-i18n="cameraViewTitle">调整相机视角</div>
+            <div class="control-pad">
+              <button class="view-button control-up" id="cameraPitchUp" type="button" title="相机纵向上转" data-i18n-title="cameraPitchUp">↑</button>
+              <button class="view-button control-left" id="cameraYawLeft" type="button" title="相机水平左转" data-i18n-title="cameraYawLeft">←</button>
+              <button class="view-button control-reset" id="cameraViewReset" type="button" title="重置相机视角" data-i18n-title="cameraReset">↺</button>
+              <button class="view-button control-right" id="cameraYawRight" type="button" title="相机水平右转" data-i18n-title="cameraYawRight">→</button>
+              <button class="view-button control-down" id="cameraPitchDown" type="button" title="相机纵向下转" data-i18n-title="cameraPitchDown">↓</button>
+            </div>
+          </div>
         </div>
         <div class="drop-overlay" id="dropOverlay">
           <div class="drop-card">

@@ -38,6 +38,11 @@
   const metaTexture = document.getElementById("metaTexture");
   const sunAzimuthInput = document.getElementById("sunAzimuth");
   const sunElevationInput = document.getElementById("sunElevation");
+  const modelYawLeft = document.getElementById("modelYawLeft");
+  const modelYawRight = document.getElementById("modelYawRight");
+  const modelPitchUp = document.getElementById("modelPitchUp");
+  const modelPitchDown = document.getElementById("modelPitchDown");
+  const modelPostureReset = document.getElementById("modelPostureReset");
   const cameraYawLeft = document.getElementById("cameraYawLeft");
   const cameraYawRight = document.getElementById("cameraYawRight");
   const cameraPitchUp = document.getElementById("cameraPitchUp");
@@ -72,6 +77,13 @@
       sunTitle: "太阳位置",
       sunAzimuth: "方位角",
       sunElevation: "高度角",
+      modelPostureTitle: "调整模型姿态",
+      modelYawLeft: "模型水平左转",
+      modelYawRight: "模型水平右转",
+      modelPitchUp: "模型纵向上转",
+      modelPitchDown: "模型纵向下转",
+      modelPostureReset: "重置模型姿态",
+      cameraViewTitle: "调整相机视角",
       cameraYawLeft: "相机水平左转",
       cameraYawRight: "相机水平右转",
       cameraPitchUp: "相机纵向上转",
@@ -128,6 +140,13 @@
       sunTitle: "Sun Position",
       sunAzimuth: "Azimuth",
       sunElevation: "Elevation",
+      modelPostureTitle: "Adjust Model Posture",
+      modelYawLeft: "Rotate model left",
+      modelYawRight: "Rotate model right",
+      modelPitchUp: "Pitch model up",
+      modelPitchDown: "Pitch model down",
+      modelPostureReset: "Reset model posture",
+      cameraViewTitle: "Adjust Camera View",
       cameraYawLeft: "Rotate camera left",
       cameraYawRight: "Rotate camera right",
       cameraPitchUp: "Pitch camera up",
@@ -309,6 +328,14 @@
   languageToggle.addEventListener("click", toggleLanguage);
   sunAzimuthInput.addEventListener("input", updateSunFromInputs);
   sunElevationInput.addEventListener("input", updateSunFromInputs);
+  modelYawLeft.addEventListener("click", () => rotateModelPosture("yaw", -1));
+  modelYawRight.addEventListener("click", () => rotateModelPosture("yaw", 1));
+  modelPitchUp.addEventListener("click", () => rotateModelPosture("pitch", -1));
+  modelPitchDown.addEventListener("click", () => rotateModelPosture("pitch", 1));
+  modelPostureReset.addEventListener("click", () => {
+    state.orientation = [1, 0, 0, 0];
+    state.projectionDirty = true;
+  });
   cameraYawLeft.addEventListener("click", () => rotateCameraView("yaw", -1));
   cameraYawRight.addEventListener("click", () => rotateCameraView("yaw", 1));
   cameraPitchUp.addEventListener("click", () => rotateCameraView("pitch", -1));
@@ -1473,6 +1500,15 @@
     state.zoom = 3.0;
     state.panX = 0;
     state.panY = 0;
+    state.projectionDirty = true;
+  }
+
+  function rotateModelPosture(axis, direction) {
+    const angle = degreesToRadians(10) * direction;
+    const rotation = axis === "yaw"
+      ? quatFromAxisAngle([0, 1, 0], angle)
+      : quatFromAxisAngle([1, 0, 0], angle);
+    state.orientation = quatNormalize(quatMultiply(rotation, state.orientation));
     state.projectionDirty = true;
   }
 
