@@ -68,6 +68,18 @@
           </div>
         </section>
 
+        <section class="camera-panel">
+          <h2 data-i18n="cameraTitle">相机视角</h2>
+          <div class="camera-grid" aria-label="Camera view controls">
+            <button class="camera-button camera-up" id="cameraPitchUp" type="button" title="Pitch up" data-i18n-title="cameraPitchUp">↑</button>
+            <button class="camera-button camera-left" id="cameraYawLeft" type="button" title="Rotate left" data-i18n-title="cameraYawLeft">←</button>
+            <button class="camera-button camera-reset" id="cameraReset" type="button" title="Reset view" data-i18n-title="cameraReset">↺</button>
+            <button class="camera-button camera-right" id="cameraYawRight" type="button" title="Rotate right" data-i18n-title="cameraYawRight">→</button>
+            <button class="camera-button camera-down" id="cameraPitchDown" type="button" title="Pitch down" data-i18n-title="cameraPitchDown">↓</button>
+          </div>
+          <p class="camera-note" data-i18n="cameraStepNote">每次点击按固定步长旋转 10°。</p>
+        </section>
+
         <section class="scale-panel">
           <h2 data-i18n="scaleTitle">比例尺标定</h2>
           <button class="calibration-button" id="calibrationToggle" type="button" data-i18n="calibrationStart">选择两个标定点</button>
