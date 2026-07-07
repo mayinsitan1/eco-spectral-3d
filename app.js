@@ -38,11 +38,6 @@
   const metaTexture = document.getElementById("metaTexture");
   const sunAzimuthInput = document.getElementById("sunAzimuth");
   const sunElevationInput = document.getElementById("sunElevation");
-  const cameraYawLeft = document.getElementById("cameraYawLeft");
-  const cameraYawRight = document.getElementById("cameraYawRight");
-  const cameraPitchUp = document.getElementById("cameraPitchUp");
-  const cameraPitchDown = document.getElementById("cameraPitchDown");
-  const cameraReset = document.getElementById("cameraReset");
   const languageToggle = document.getElementById("languageToggle");
   const calibrationToggle = document.getElementById("calibrationToggle");
   const modelSegmentLength = document.getElementById("modelSegmentLength");
@@ -72,13 +67,6 @@
       sunTitle: "太阳位置",
       sunAzimuth: "方位角",
       sunElevation: "高度角",
-      cameraTitle: "相机视角",
-      cameraYawLeft: "水平左转",
-      cameraYawRight: "水平右转",
-      cameraPitchUp: "纵向上转",
-      cameraPitchDown: "纵向下转",
-      cameraReset: "重置视角",
-      cameraStepNote: "每次点击按固定步长旋转 10°。",
       scaleTitle: "比例尺标定",
       calibrationStart: "选择两个标定点",
       calibrationActive: "确定选点",
@@ -90,7 +78,7 @@
       realSurfaceArea: "真实表面积",
       realVolume: "真实体积",
       controlsTitle: "操作",
-      controlsText: "使用相机视角按钮按固定步长旋转；滚轮缩放；双击重置视角。",
+      controlsText: "左键拖动旋转；右键或 Shift+左键拖动平移；滚轮缩放；双击重置视角。",
       textureLoaded: "已加载",
       textureUnused: "未使用",
       projectionEmpty: "加载模型后显示",
@@ -130,13 +118,6 @@
       sunTitle: "Sun Position",
       sunAzimuth: "Azimuth",
       sunElevation: "Elevation",
-      cameraTitle: "Camera View",
-      cameraYawLeft: "Rotate left",
-      cameraYawRight: "Rotate right",
-      cameraPitchUp: "Pitch up",
-      cameraPitchDown: "Pitch down",
-      cameraReset: "Reset view",
-      cameraStepNote: "Each click rotates by a fixed 10° step.",
       scaleTitle: "Scale Calibration",
       calibrationStart: "Select Two Points",
       calibrationActive: "Confirm Points",
@@ -148,7 +129,7 @@
       realSurfaceArea: "Real surface area",
       realVolume: "Real volume",
       controlsTitle: "Controls",
-      controlsText: "Use the camera view buttons for fixed-step rotation; use the wheel to zoom; double click to reset.",
+      controlsText: "Left drag to rotate; right drag or Shift + left drag to pan; wheel to zoom; double click to reset.",
       textureLoaded: "Loaded",
       textureUnused: "Not used",
       projectionEmpty: "Load a model first",
@@ -312,14 +293,6 @@
   languageToggle.addEventListener("click", toggleLanguage);
   sunAzimuthInput.addEventListener("input", updateSunFromInputs);
   sunElevationInput.addEventListener("input", updateSunFromInputs);
-  cameraYawLeft.addEventListener("click", () => rotateCameraByStep("yaw", -1));
-  cameraYawRight.addEventListener("click", () => rotateCameraByStep("yaw", 1));
-  cameraPitchUp.addEventListener("click", () => rotateCameraByStep("pitch", -1));
-  cameraPitchDown.addEventListener("click", () => rotateCameraByStep("pitch", 1));
-  cameraReset.addEventListener("click", () => {
-    resetCamera();
-    state.projectionDirty = true;
-  });
   calibrationToggle.addEventListener("click", toggleCalibrationMode);
   realLengthInput.addEventListener("input", updateCalibrationReadout);
   realUnitInput.addEventListener("input", updateCalibrationReadout);
@@ -347,11 +320,26 @@
       pickCalibrationPoint(event);
       return;
     }
-    event.preventDefault();
+    state.dragging = true;
+    state.dragMode = event.button === 2 || event.shiftKey ? "pan" : "rotate";
+    state.lastPointer = [event.clientX, event.clientY];
+    canvas.setPointerCapture(event.pointerId);
   });
 
   canvas.addEventListener("pointermove", (event) => {
-    if (state.dragging) event.preventDefault();
+    if (!state.dragging) return;
+    const dx = event.clientX - state.lastPointer[0];
+    const dy = event.clientY - state.lastPointer[1];
+    if (state.dragMode === "pan") {
+      state.panX += dx * 0.004;
+      state.panY -= dy * 0.004;
+    } else {
+      const yaw = quatFromAxisAngle([0, 1, 0], dx * 0.014);
+      const pitch = quatFromAxisAngle([1, 0, 0], dy * 0.014);
+      state.orientation = quatNormalize(quatMultiply(pitch, quatMultiply(yaw, state.orientation)));
+    }
+    state.projectionDirty = true;
+    state.lastPointer = [event.clientX, event.clientY];
   });
 
   canvas.addEventListener("pointerup", (event) => {
@@ -1465,15 +1453,6 @@
     state.panY = 0;
   }
 
-  function rotateCameraByStep(axis, direction) {
-    const angle = degreesToRadians(10) * direction;
-    const rotation = axis === "yaw"
-      ? quatFromAxisAngle([0, 1, 0], angle)
-      : quatFromAxisAngle([1, 0, 0], angle);
-    state.orientation = quatNormalize(quatMultiply(rotation, state.orientation));
-    state.projectionDirty = true;
-  }
-
   function viewerModelViewMatrix() {
     // Trackball-style model rotation: all formats are first centered and
     // normalized, then the same quaternion orientation is applied around that
@@ -1643,10 +1622,6 @@
     }
     for (const element of document.querySelectorAll("[data-i18n-placeholder]")) {
       element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
-    }
-    for (const element of document.querySelectorAll("[data-i18n-title]")) {
-      element.setAttribute("title", t(element.dataset.i18nTitle));
-      element.setAttribute("aria-label", t(element.dataset.i18nTitle));
     }
     calibrationToggle.textContent = t(state.calibrationActive ? "calibrationActive" : "calibrationStart");
     statusEl.textContent = t(state.statusKey, state.statusVars);

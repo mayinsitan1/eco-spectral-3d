@@ -193,7 +193,6 @@ p {
 }
 
 .sun-panel,
-.camera-panel,
 .scale-panel {
   border-top: 1px solid #e2e8f0;
   padding-top: 14px;
@@ -222,66 +221,6 @@ p {
   border-radius: 7px;
   padding: 0 9px;
   font: inherit;
-}
-
-.camera-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 42px);
-  grid-template-rows: repeat(3, 36px);
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  margin: 6px 0 8px;
-}
-
-.camera-button {
-  display: grid;
-  place-items: center;
-  width: 42px;
-  height: 36px;
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  background: #f8fafc;
-  color: #0f172a;
-  font: inherit;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.camera-button:hover {
-  background: #e2f3f6;
-  border-color: #94cbd4;
-}
-
-.camera-up {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.camera-left {
-  grid-column: 1;
-  grid-row: 2;
-}
-
-.camera-reset {
-  grid-column: 2;
-  grid-row: 2;
-}
-
-.camera-right {
-  grid-column: 3;
-  grid-row: 2;
-}
-
-.camera-down {
-  grid-column: 2;
-  grid-row: 3;
-}
-
-.camera-note {
-  font-size: 13px;
-  text-align: center;
 }
 
 .calibration-button {
