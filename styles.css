@@ -91,6 +91,50 @@ body {
   gap: 8px;
 }
 
+.axis-control-grid {
+  display: grid;
+  grid-template-columns: minmax(72px, 1fr) 38px 38px;
+  gap: 8px;
+  align-items: center;
+  min-width: 172px;
+}
+
+.axis-control-grid span {
+  color: #dbeafe;
+  font-size: 13px;
+}
+
+.axis-button,
+.axis-reset-button {
+  display: grid;
+  place-items: center;
+  height: 34px;
+  border: 1px solid rgba(219, 234, 254, 0.36);
+  border-radius: 7px;
+  background: rgba(248, 250, 252, 0.12);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.axis-button {
+  width: 38px;
+  font-size: 18px;
+}
+
+.axis-reset-button {
+  grid-column: 1 / -1;
+  width: 100%;
+  font-size: 13px;
+}
+
+.axis-button:hover,
+.axis-reset-button:hover {
+  background: rgba(14, 116, 144, 0.55);
+  border-color: rgba(165, 243, 252, 0.72);
+}
+
 .view-button {
   display: grid;
   place-items: center;

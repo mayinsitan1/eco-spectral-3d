@@ -38,10 +38,12 @@
   const metaTexture = document.getElementById("metaTexture");
   const sunAzimuthInput = document.getElementById("sunAzimuth");
   const sunElevationInput = document.getElementById("sunElevation");
-  const modelYawLeft = document.getElementById("modelYawLeft");
-  const modelYawRight = document.getElementById("modelYawRight");
-  const modelPitchUp = document.getElementById("modelPitchUp");
-  const modelPitchDown = document.getElementById("modelPitchDown");
+  const modelYawMinus = document.getElementById("modelYawMinus");
+  const modelYawPlus = document.getElementById("modelYawPlus");
+  const modelPitchMinus = document.getElementById("modelPitchMinus");
+  const modelPitchPlus = document.getElementById("modelPitchPlus");
+  const modelRollMinus = document.getElementById("modelRollMinus");
+  const modelRollPlus = document.getElementById("modelRollPlus");
   const modelPostureReset = document.getElementById("modelPostureReset");
   const cameraYawLeft = document.getElementById("cameraYawLeft");
   const cameraYawRight = document.getElementById("cameraYawRight");
@@ -78,11 +80,17 @@
       sunAzimuth: "方位角",
       sunElevation: "高度角",
       modelPostureTitle: "调整模型姿态",
-      modelYawLeft: "模型水平左转",
-      modelYawRight: "模型水平右转",
-      modelPitchUp: "模型纵向上转",
-      modelPitchDown: "模型纵向下转",
+      modelYawPlane: "水平面",
+      modelPitchPlane: "垂直面",
+      modelRollAxis: "身体纵轴",
+      modelYawMinus: "水平面反向旋转",
+      modelYawPlus: "水平面正向旋转",
+      modelPitchMinus: "垂直面反向旋转",
+      modelPitchPlus: "垂直面正向旋转",
+      modelRollMinus: "身体纵轴反向旋转",
+      modelRollPlus: "身体纵轴正向旋转",
       modelPostureReset: "重置模型姿态",
+      modelPostureResetButton: "重置姿态",
       cameraViewTitle: "调整相机视角",
       cameraYawLeft: "相机水平左转",
       cameraYawRight: "相机水平右转",
@@ -141,11 +149,17 @@
       sunAzimuth: "Azimuth",
       sunElevation: "Elevation",
       modelPostureTitle: "Adjust Model Posture",
-      modelYawLeft: "Rotate model left",
-      modelYawRight: "Rotate model right",
-      modelPitchUp: "Pitch model up",
-      modelPitchDown: "Pitch model down",
+      modelYawPlane: "Horizontal",
+      modelPitchPlane: "Vertical",
+      modelRollAxis: "Body axis",
+      modelYawMinus: "Rotate backward in the horizontal plane",
+      modelYawPlus: "Rotate forward in the horizontal plane",
+      modelPitchMinus: "Rotate backward in the vertical plane",
+      modelPitchPlus: "Rotate forward in the vertical plane",
+      modelRollMinus: "Roll backward along the body axis",
+      modelRollPlus: "Roll forward along the body axis",
       modelPostureReset: "Reset model posture",
+      modelPostureResetButton: "Reset posture",
       cameraViewTitle: "Adjust Camera View",
       cameraYawLeft: "Rotate camera left",
       cameraYawRight: "Rotate camera right",
@@ -328,10 +342,12 @@
   languageToggle.addEventListener("click", toggleLanguage);
   sunAzimuthInput.addEventListener("input", updateSunFromInputs);
   sunElevationInput.addEventListener("input", updateSunFromInputs);
-  modelYawLeft.addEventListener("click", () => rotateModelPosture("yaw", -1));
-  modelYawRight.addEventListener("click", () => rotateModelPosture("yaw", 1));
-  modelPitchUp.addEventListener("click", () => rotateModelPosture("pitch", -1));
-  modelPitchDown.addEventListener("click", () => rotateModelPosture("pitch", 1));
+  modelYawMinus.addEventListener("click", () => rotateModelPosture("yaw", -1));
+  modelYawPlus.addEventListener("click", () => rotateModelPosture("yaw", 1));
+  modelPitchMinus.addEventListener("click", () => rotateModelPosture("pitch", -1));
+  modelPitchPlus.addEventListener("click", () => rotateModelPosture("pitch", 1));
+  modelRollMinus.addEventListener("click", () => rotateModelPosture("roll", -1));
+  modelRollPlus.addEventListener("click", () => rotateModelPosture("roll", 1));
   modelPostureReset.addEventListener("click", () => {
     state.orientation = [1, 0, 0, 0];
     state.projectionDirty = true;
@@ -1505,9 +1521,12 @@
 
   function rotateModelPosture(axis, direction) {
     const angle = degreesToRadians(10) * direction;
-    const rotation = axis === "yaw"
-      ? quatFromAxisAngle([0, 1, 0], angle)
-      : quatFromAxisAngle([1, 0, 0], angle);
+    const axes = {
+      yaw: [0, 1, 0],   // Horizontal-plane rotation.
+      pitch: [0, 0, 1], // Vertical-plane rotation: raises or lowers the body axis.
+      roll: [1, 0, 0],  // Rotation along the animal's longitudinal body axis.
+    };
+    const rotation = quatFromAxisAngle(axes[axis] || axes.yaw, angle);
     state.orientation = quatNormalize(quatMultiply(rotation, state.orientation));
     state.projectionDirty = true;
   }

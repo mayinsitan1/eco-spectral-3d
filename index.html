@@ -17,12 +17,17 @@
         <div class="view-control-stack">
           <div class="view-control-panel" aria-label="Model posture controls">
             <div class="view-control-title" data-i18n="modelPostureTitle">调整模型姿态</div>
-            <div class="control-pad">
-              <button class="view-button control-up" id="modelPitchUp" type="button" title="模型纵向上转" data-i18n-title="modelPitchUp">↑</button>
-              <button class="view-button control-left" id="modelYawLeft" type="button" title="模型水平左转" data-i18n-title="modelYawLeft">←</button>
-              <button class="view-button control-reset" id="modelPostureReset" type="button" title="重置模型姿态" data-i18n-title="modelPostureReset">↺</button>
-              <button class="view-button control-right" id="modelYawRight" type="button" title="模型水平右转" data-i18n-title="modelYawRight">→</button>
-              <button class="view-button control-down" id="modelPitchDown" type="button" title="模型纵向下转" data-i18n-title="modelPitchDown">↓</button>
+            <div class="axis-control-grid">
+              <span data-i18n="modelYawPlane">水平面</span>
+              <button class="axis-button" id="modelYawMinus" type="button" title="水平面反向旋转" data-i18n-title="modelYawMinus">−</button>
+              <button class="axis-button" id="modelYawPlus" type="button" title="水平面正向旋转" data-i18n-title="modelYawPlus">+</button>
+              <span data-i18n="modelPitchPlane">垂直面</span>
+              <button class="axis-button" id="modelPitchMinus" type="button" title="垂直面反向旋转" data-i18n-title="modelPitchMinus">−</button>
+              <button class="axis-button" id="modelPitchPlus" type="button" title="垂直面正向旋转" data-i18n-title="modelPitchPlus">+</button>
+              <span data-i18n="modelRollAxis">身体纵轴</span>
+              <button class="axis-button" id="modelRollMinus" type="button" title="身体纵轴反向旋转" data-i18n-title="modelRollMinus">−</button>
+              <button class="axis-button" id="modelRollPlus" type="button" title="身体纵轴正向旋转" data-i18n-title="modelRollPlus">+</button>
+              <button class="axis-reset-button" id="modelPostureReset" type="button" title="重置模型姿态" data-i18n-title="modelPostureReset" data-i18n="modelPostureResetButton">重置姿态</button>
             </div>
           </div>
           <div class="view-control-panel" aria-label="Camera view controls">
