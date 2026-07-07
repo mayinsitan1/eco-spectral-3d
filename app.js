@@ -38,6 +38,11 @@
   const metaTexture = document.getElementById("metaTexture");
   const sunAzimuthInput = document.getElementById("sunAzimuth");
   const sunElevationInput = document.getElementById("sunElevation");
+  const cameraYawLeft = document.getElementById("cameraYawLeft");
+  const cameraYawRight = document.getElementById("cameraYawRight");
+  const cameraPitchUp = document.getElementById("cameraPitchUp");
+  const cameraPitchDown = document.getElementById("cameraPitchDown");
+  const cameraViewReset = document.getElementById("cameraViewReset");
   const languageToggle = document.getElementById("languageToggle");
   const calibrationToggle = document.getElementById("calibrationToggle");
   const modelSegmentLength = document.getElementById("modelSegmentLength");
@@ -67,6 +72,11 @@
       sunTitle: "太阳位置",
       sunAzimuth: "方位角",
       sunElevation: "高度角",
+      cameraYawLeft: "相机水平左转",
+      cameraYawRight: "相机水平右转",
+      cameraPitchUp: "相机纵向上转",
+      cameraPitchDown: "相机纵向下转",
+      cameraReset: "重置相机视角",
       scaleTitle: "比例尺标定",
       calibrationStart: "选择两个标定点",
       calibrationActive: "确定选点",
@@ -78,7 +88,7 @@
       realSurfaceArea: "真实表面积",
       realVolume: "真实体积",
       controlsTitle: "操作",
-      controlsText: "左键拖动旋转；右键或 Shift+左键拖动平移；滚轮缩放；双击重置视角。",
+      controlsText: "左键拖动调整模型姿态；右下角按钮调整相机视角；滚轮缩放；双击重置视角。",
       textureLoaded: "已加载",
       textureUnused: "未使用",
       projectionEmpty: "加载模型后显示",
@@ -118,6 +128,11 @@
       sunTitle: "Sun Position",
       sunAzimuth: "Azimuth",
       sunElevation: "Elevation",
+      cameraYawLeft: "Rotate camera left",
+      cameraYawRight: "Rotate camera right",
+      cameraPitchUp: "Pitch camera up",
+      cameraPitchDown: "Pitch camera down",
+      cameraReset: "Reset camera view",
       scaleTitle: "Scale Calibration",
       calibrationStart: "Select Two Points",
       calibrationActive: "Confirm Points",
@@ -129,7 +144,7 @@
       realSurfaceArea: "Real surface area",
       realVolume: "Real volume",
       controlsTitle: "Controls",
-      controlsText: "Left drag to rotate; right drag or Shift + left drag to pan; wheel to zoom; double click to reset.",
+      controlsText: "Left drag adjusts model posture; bottom-right buttons adjust the camera view; wheel to zoom; double click to reset.",
       textureLoaded: "Loaded",
       textureUnused: "Not used",
       projectionEmpty: "Load a model first",
@@ -155,6 +170,7 @@
   const state = {
     mesh: null,
     texture: null,
+    cameraOrientation: [1, 0, 0, 0],
     orientation: [1, 0, 0, 0],
     zoom: 3.0,
     panX: 0,
@@ -293,6 +309,13 @@
   languageToggle.addEventListener("click", toggleLanguage);
   sunAzimuthInput.addEventListener("input", updateSunFromInputs);
   sunElevationInput.addEventListener("input", updateSunFromInputs);
+  cameraYawLeft.addEventListener("click", () => rotateCameraView("yaw", -1));
+  cameraYawRight.addEventListener("click", () => rotateCameraView("yaw", 1));
+  cameraPitchUp.addEventListener("click", () => rotateCameraView("pitch", -1));
+  cameraPitchDown.addEventListener("click", () => rotateCameraView("pitch", 1));
+  cameraViewReset.addEventListener("click", () => {
+    resetCameraView();
+  });
   calibrationToggle.addEventListener("click", toggleCalibrationMode);
   realLengthInput.addEventListener("input", updateCalibrationReadout);
   realUnitInput.addEventListener("input", updateCalibrationReadout);
@@ -1000,9 +1023,7 @@
     // The grid is a world-space reference plane. It follows camera pan/zoom, but
     // deliberately does not inherit the model's quaternion rotation, so users
     // can judge model posture against a stable environmental horizon.
-    let modelView = identity();
-    modelView = multiply(modelView, translate(0, 0, -state.zoom));
-    modelView = multiply(modelView, translate(state.panX, state.panY, 0));
+    const modelView = sceneViewMatrix();
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1190,9 +1211,7 @@
   function drawSun(projection) {
     const direction = sunDirection();
     const position = [direction[0] * 2.25, direction[1] * 2.25, direction[2] * 2.25];
-    let modelView = identity();
-    modelView = multiply(modelView, translate(0, 0, -state.zoom));
-    modelView = multiply(modelView, translate(state.panX, state.panY, 0));
+    const modelView = sceneViewMatrix();
 
     gl.useProgram(sunProgram);
     gl.uniformMatrix4fv(sunLoc.projection, false, new Float32Array(projection));
@@ -1224,9 +1243,7 @@
       vertices.push(target[0], target[1], target[2]);
     }
 
-    let modelView = identity();
-    modelView = multiply(modelView, translate(0, 0, -state.zoom));
-    modelView = multiply(modelView, translate(state.panX, state.panY, 0));
+    const modelView = sceneViewMatrix();
 
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
@@ -1448,9 +1465,32 @@
 
   function resetCamera() {
     state.orientation = [1, 0, 0, 0];
+    resetCameraView();
+  }
+
+  function resetCameraView() {
+    state.cameraOrientation = [1, 0, 0, 0];
     state.zoom = 3.0;
     state.panX = 0;
     state.panY = 0;
+    state.projectionDirty = true;
+  }
+
+  function rotateCameraView(axis, direction) {
+    const angle = degreesToRadians(10) * direction;
+    const rotation = axis === "yaw"
+      ? quatFromAxisAngle([0, 1, 0], angle)
+      : quatFromAxisAngle([1, 0, 0], angle);
+    state.cameraOrientation = quatNormalize(quatMultiply(rotation, state.cameraOrientation));
+    state.projectionDirty = true;
+  }
+
+  function sceneViewMatrix() {
+    let view = identity();
+    view = multiply(view, translate(0, 0, -state.zoom));
+    view = multiply(view, translate(state.panX, state.panY, 0));
+    view = multiply(view, quatToMatrix(state.cameraOrientation));
+    return view;
   }
 
   function viewerModelViewMatrix() {
@@ -1458,9 +1498,7 @@
     // normalized, then the same quaternion orientation is applied around that
     // center. This avoids format-specific axis quirks from making STL/GLB feel
     // different from OBJ during dragging.
-    let modelView = identity();
-    modelView = multiply(modelView, translate(0, 0, -state.zoom));
-    modelView = multiply(modelView, translate(state.panX, state.panY, 0));
+    let modelView = sceneViewMatrix();
     modelView = multiply(modelView, quatToMatrix(state.orientation));
     if (state.mesh && state.mesh.sideViewMatrix) {
       modelView = multiply(modelView, state.mesh.sideViewMatrix);
@@ -1622,6 +1660,10 @@
     }
     for (const element of document.querySelectorAll("[data-i18n-placeholder]")) {
       element.setAttribute("placeholder", t(element.dataset.i18nPlaceholder));
+    }
+    for (const element of document.querySelectorAll("[data-i18n-title]")) {
+      element.setAttribute("title", t(element.dataset.i18nTitle));
+      element.setAttribute("aria-label", t(element.dataset.i18nTitle));
     }
     calibrationToggle.textContent = t(state.calibrationActive ? "calibrationActive" : "calibrationStart");
     statusEl.textContent = t(state.statusKey, state.statusVars);

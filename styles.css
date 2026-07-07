@@ -58,6 +58,66 @@ body {
   background: rgba(255, 255, 255, 0.06);
 }
 
+.camera-pad {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 42px);
+  grid-template-rows: repeat(3, 38px);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: rgba(9, 14, 21, 0.68);
+  backdrop-filter: blur(8px);
+}
+
+.camera-button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 38px;
+  border: 1px solid rgba(219, 234, 254, 0.36);
+  border-radius: 7px;
+  background: rgba(248, 250, 252, 0.12);
+  color: #ffffff;
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.camera-button:hover {
+  background: rgba(14, 116, 144, 0.55);
+  border-color: rgba(165, 243, 252, 0.72);
+}
+
+.camera-up {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.camera-left {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.camera-reset {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.camera-right {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.camera-down {
+  grid-column: 2;
+  grid-row: 3;
+}
+
 .drop-overlay {
   position: absolute;
   inset: 0;

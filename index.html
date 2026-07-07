@@ -14,6 +14,13 @@
           <div class="projection-title" data-i18n="projectionTitle">投影面轮廓</div>
           <canvas id="projectionCanvas" width="220" height="160" aria-label="Projected silhouette preview"></canvas>
         </div>
+        <div class="camera-pad" aria-label="Camera view controls">
+          <button class="camera-button camera-up" id="cameraPitchUp" type="button" title="纵向上转" data-i18n-title="cameraPitchUp">↑</button>
+          <button class="camera-button camera-left" id="cameraYawLeft" type="button" title="水平左转" data-i18n-title="cameraYawLeft">←</button>
+          <button class="camera-button camera-reset" id="cameraViewReset" type="button" title="重置相机视角" data-i18n-title="cameraReset">↺</button>
+          <button class="camera-button camera-right" id="cameraYawRight" type="button" title="水平右转" data-i18n-title="cameraYawRight">→</button>
+          <button class="camera-button camera-down" id="cameraPitchDown" type="button" title="纵向下转" data-i18n-title="cameraPitchDown">↓</button>
+        </div>
         <div class="drop-overlay" id="dropOverlay">
           <div class="drop-card">
             <strong data-i18n="dropTitle">拖入 3D 模型文件</strong>
