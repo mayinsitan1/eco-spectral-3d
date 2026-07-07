@@ -283,6 +283,8 @@
     color: gl.getUniformLocation(beamProgram, "uColor"),
   };
   const beamBuffer = gl.createBuffer();
+  const gridBuffer = gl.createBuffer();
+  const gridVertexCount = createHorizontalGridBuffer();
 
   const whiteTexture = createSolidTexture([255, 255, 255, 255]);
 
@@ -939,6 +941,22 @@
     gl.bufferData(gl.ARRAY_BUFFER, mesh.uvs, gl.STATIC_DRAW);
   }
 
+  function createHorizontalGridBuffer() {
+    const vertices = [];
+    const halfSize = 2.4;
+    const divisions = 24;
+    const y = -1.02;
+    for (let i = 0; i <= divisions; i++) {
+      const value = -halfSize + (i / divisions) * halfSize * 2;
+      vertices.push(-halfSize, y, value, halfSize, y, value);
+      vertices.push(value, y, -halfSize, value, y, halfSize);
+    }
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, gridBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+    return vertices.length / 3;
+  }
+
   function draw() {
     resizeCanvas();
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -948,6 +966,8 @@
 
     const aspect = canvas.width / Math.max(1, canvas.height);
     const projection = perspective(Math.PI / 4, aspect, 0.01, 100);
+
+    drawHorizontalGrid(projection);
 
     if (state.mesh) {
       const modelView = viewerModelViewMatrix();
@@ -974,6 +994,29 @@
     maybeUpdateProjectionSilhouette();
 
     requestAnimationFrame(draw);
+  }
+
+  function drawHorizontalGrid(projection) {
+    // The grid is a world-space reference plane. It follows camera pan/zoom, but
+    // deliberately does not inherit the model's quaternion rotation, so users
+    // can judge model posture against a stable environmental horizon.
+    let modelView = identity();
+    modelView = multiply(modelView, translate(0, 0, -state.zoom));
+    modelView = multiply(modelView, translate(state.panX, state.panY, 0));
+
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.depthMask(false);
+    gl.useProgram(beamProgram);
+    gl.uniformMatrix4fv(beamLoc.projection, false, new Float32Array(projection));
+    gl.uniformMatrix4fv(beamLoc.modelView, false, new Float32Array(modelView));
+    gl.uniform4fv(beamLoc.color, new Float32Array([0.78, 0.86, 0.95, 0.26]));
+    gl.bindBuffer(gl.ARRAY_BUFFER, gridBuffer);
+    gl.enableVertexAttribArray(beamLoc.position);
+    gl.vertexAttribPointer(beamLoc.position, 3, gl.FLOAT, false, 0, 0);
+    gl.drawArrays(gl.LINES, 0, gridVertexCount);
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
   }
 
   function toggleCalibrationMode() {
