@@ -91,48 +91,115 @@ body {
   gap: 8px;
 }
 
-.axis-control-grid {
-  display: grid;
-  grid-template-columns: minmax(72px, 1fr) 38px 38px;
-  gap: 8px;
-  align-items: center;
-  min-width: 172px;
+.orientation-gizmo {
+  position: relative;
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgba(79, 86, 95, 0.94), rgba(38, 43, 49, 0.95));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
-.axis-control-grid span {
-  color: #dbeafe;
-  font-size: 13px;
+.gizmo-line {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 64px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(203, 213, 225, 0.36);
+  transform-origin: center;
+  pointer-events: none;
 }
 
-.axis-button,
-.axis-reset-button {
+.gizmo-line-horizontal {
+  transform: translate(-50%, -50%);
+}
+
+.gizmo-line-vertical {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.gizmo-node,
+.gizmo-center {
+  position: absolute;
   display: grid;
   place-items: center;
-  height: 34px;
-  border: 1px solid rgba(219, 234, 254, 0.36);
-  border-radius: 7px;
-  background: rgba(248, 250, 252, 0.12);
+  border: 0;
+  border-radius: 50%;
   color: #ffffff;
   font: inherit;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  z-index: 2;
 }
 
-.axis-button {
-  width: 38px;
-  font-size: 18px;
+.gizmo-node {
+  width: 14px;
+  height: 14px;
 }
 
-.axis-reset-button {
-  grid-column: 1 / -1;
-  width: 100%;
-  font-size: 13px;
+.gizmo-node:hover,
+.gizmo-center:hover {
+  outline: 2px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 2px;
 }
 
-.axis-button:hover,
-.axis-reset-button:hover {
-  background: rgba(14, 116, 144, 0.55);
-  border-color: rgba(165, 243, 252, 0.72);
+.gizmo-node-yaw {
+  background: #f45f66;
+}
+
+.gizmo-node-pitch {
+  background: #43c6a6;
+}
+
+.gizmo-node-roll {
+  width: 24px;
+  height: 24px;
+  background: #2877d8;
+  font-size: 14px;
+}
+
+.gizmo-yaw-minus {
+  left: 28px;
+  top: 59px;
+}
+
+.gizmo-yaw-plus {
+  right: 28px;
+  top: 59px;
+}
+
+.gizmo-pitch-minus {
+  left: 59px;
+  top: 28px;
+}
+
+.gizmo-pitch-plus {
+  left: 59px;
+  bottom: 28px;
+}
+
+.gizmo-roll-minus {
+  left: 44px;
+  top: 54px;
+}
+
+.gizmo-roll-plus {
+  right: 44px;
+  top: 54px;
+}
+
+.gizmo-center {
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: #1f8fef;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  z-index: 3;
 }
 
 .view-button {
