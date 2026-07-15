@@ -1,2 +1,3 @@
 examples/common_kingfisher_obj/** -text
 examples/default_kingfisher_data.js -text
+examples/default_kingfisher_texture.js -text

@@ -583,7 +583,9 @@
     const parsed = parseObj(text);
     let textureImage = null;
 
-    if (example.texturePath) {
+    if (example.textureBase64Global && window[example.textureBase64Global]) {
+      textureImage = await imageFromDataUri("data:image/png;base64," + window[example.textureBase64Global].join(""));
+    } else if (example.texturePath) {
       textureImage = await imageFromUrl(new URL(example.texturePath, window.location.href));
     }
 
@@ -654,6 +656,15 @@
       image.onload = () => resolve(image);
       image.onerror = () => reject(new Error("Could not load texture " + url.href));
       image.src = url.href;
+    });
+  }
+
+  function imageFromDataUri(uri) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Could not load the embedded default texture."));
+      image.src = uri;
     });
   }
 

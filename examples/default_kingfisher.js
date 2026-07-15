@@ -15,5 +15,6 @@
     objPath: "./examples/common_kingfisher_obj/common_kingfisher.obj",
     texturePath: "./examples/common_kingfisher_obj/texture_pbr_20250901.png",
     compressedObjGzipBase64Global: "DEFAULT_KINGFISHER_OBJ_GZIP_BASE64",
+    textureBase64Global: "DEFAULT_KINGFISHER_TEXTURE_BASE64",
   };
 })();
