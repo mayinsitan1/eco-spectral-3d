@@ -1541,6 +1541,7 @@
 
     const image = projectionRasterCtx.getImageData(0, 0, width, height);
     keepLargestProjectionComponent(image, width, height);
+    fillProjectionInteriorHoles(image, width, height);
     const edgeImage = projectionCtx.createImageData(width, height);
     const src = image.data;
     const dst = edgeImage.data;
@@ -1557,11 +1558,6 @@
           dst[idx + 1] = 226;
           dst[idx + 2] = 122;
           dst[idx + 3] = 255;
-        } else {
-          dst[idx] = 255;
-          dst[idx + 1] = 210;
-          dst[idx + 2] = 75;
-          dst[idx + 3] = 38;
         }
       }
     }
@@ -1626,6 +1622,50 @@
     for (let i = 0; i < pixelCount; i++) {
       if (labels[i] !== bestLabel) {
         data[i * 4 + 3] = 0;
+      }
+    }
+  }
+
+  function fillProjectionInteriorHoles(image, width, height) {
+    const data = image.data;
+    const pixelCount = width * height;
+    const exterior = new Uint8Array(pixelCount);
+    const queue = new Int32Array(pixelCount);
+    let head = 0;
+    let tail = 0;
+
+    function addExterior(index) {
+      if (exterior[index] || data[index * 4 + 3] !== 0) return;
+      exterior[index] = 1;
+      queue[tail++] = index;
+    }
+
+    // Flood-fill empty pixels connected to the preview border. Any remaining
+    // empty pixels are enclosed holes inside the projection and should be
+    // filled before extracting the silhouette, otherwise they appear as dots or
+    // small internal contours.
+    for (let x = 0; x < width; x++) {
+      addExterior(x);
+      addExterior((height - 1) * width + x);
+    }
+    for (let y = 0; y < height; y++) {
+      addExterior(y * width);
+      addExterior(y * width + width - 1);
+    }
+
+    while (head < tail) {
+      const index = queue[head++];
+      const x = index % width;
+      const y = Math.floor(index / width);
+      if (x > 0) addExterior(index - 1);
+      if (x < width - 1) addExterior(index + 1);
+      if (y > 0) addExterior(index - width);
+      if (y < height - 1) addExterior(index + width);
+    }
+
+    for (let i = 0; i < pixelCount; i++) {
+      if (!exterior[i]) {
+        data[i * 4 + 3] = 255;
       }
     }
   }
