@@ -1540,6 +1540,7 @@
     }
 
     const image = projectionRasterCtx.getImageData(0, 0, width, height);
+    keepLargestProjectionComponent(image, width, height);
     const edgeImage = projectionCtx.createImageData(width, height);
     const src = image.data;
     const dst = edgeImage.data;
@@ -1574,6 +1575,59 @@
     projectionCtx.moveTo(width / 2, height / 2 - 18);
     projectionCtx.lineTo(width / 2, height / 2 + 18);
     projectionCtx.stroke();
+  }
+
+  function keepLargestProjectionComponent(image, width, height) {
+    const data = image.data;
+    const pixelCount = width * height;
+    const labels = new Int32Array(pixelCount);
+    const queue = new Int32Array(pixelCount);
+    let bestLabel = 0;
+    let bestSize = 0;
+    let currentLabel = 0;
+
+    // The projection raster can contain tiny disconnected islands because a
+    // dense OBJ is down-sampled before rasterization. Keeping only the largest
+    // connected filled region removes those speckles while preserving the
+    // visible body outline.
+    for (let start = 0; start < pixelCount; start++) {
+      if (labels[start] !== 0 || data[start * 4 + 3] === 0) continue;
+
+      currentLabel += 1;
+      let head = 0;
+      let tail = 0;
+      labels[start] = currentLabel;
+      queue[tail++] = start;
+
+      while (head < tail) {
+        const index = queue[head++];
+        const x = index % width;
+        const y = Math.floor(index / width);
+        const neighbors = [
+          x > 0 ? index - 1 : -1,
+          x < width - 1 ? index + 1 : -1,
+          y > 0 ? index - width : -1,
+          y < height - 1 ? index + width : -1,
+        ];
+
+        for (const next of neighbors) {
+          if (next < 0 || labels[next] !== 0 || data[next * 4 + 3] === 0) continue;
+          labels[next] = currentLabel;
+          queue[tail++] = next;
+        }
+      }
+
+      if (tail > bestSize) {
+        bestSize = tail;
+        bestLabel = currentLabel;
+      }
+    }
+
+    for (let i = 0; i < pixelCount; i++) {
+      if (labels[i] !== bestLabel) {
+        data[i * 4 + 3] = 0;
+      }
+    }
   }
 
   function projectVertexToPreview(positions, index, transform, basis, cx, cy, scale, width, height) {
