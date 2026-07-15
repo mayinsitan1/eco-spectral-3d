@@ -2,6 +2,10 @@
 
 This is the first rebuilt stage of the project: a dependency-free browser viewer for animal 3D models.
 
+The viewer includes a lightweight default common kingfisher example derived
+from the project OBJ model. It loads automatically when `index.html` is opened,
+so new users can test the interface before selecting their own files.
+
 ## How to use
 
 Open `index.html` in a browser, then:
@@ -36,4 +40,3 @@ For FBX and USDZ, use the corresponding OBJ, STL, or GLB export when available.
 ## Implementation note
 
 The viewer uses plain WebGL and detailed in-code comments. No third-party 3D library is required for this stage.
-

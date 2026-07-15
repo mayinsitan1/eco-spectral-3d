@@ -111,6 +111,7 @@
       controlsText: "左键拖动调整模型姿态；右下角按钮调整相机视角；滚轮缩放；双击重置视角。",
       textureLoaded: "已加载",
       textureUnused: "未使用",
+      defaultExampleTexture: "默认示例",
       projectionEmpty: "加载模型后显示",
       statusWebglUnsupported: "当前浏览器不支持 WebGL，无法显示 3D 模型。",
       statusNoModel: "没有找到可加载的 3D 文件。请选择 OBJ、STL、GLB 或 glTF。",
@@ -118,6 +119,7 @@
       statusUnsupportedKnown: "{format} 已识别，但当前无依赖版本尚不能直接加载。请优先选择同一模型的 OBJ、STL 或 GLB 文件。",
       statusUnsupported: "暂不支持 {format} 格式。",
       statusLoaded: "模型已加载。可以旋转、平移和缩放查看。",
+      statusDefaultExampleLoaded: "已自动加载普通翠鸟默认示例。你也可以选择自己的 OBJ、STL 或 GLB 文件进行测试。",
       statusLoadFailed: "加载失败：{message}",
       statusCalibrationOn: "标定模式已开启：请在模型表面依次点击两个点。再次点击按钮可退出标定模式。",
       statusCalibrationOff: "标定模式已关闭。可以继续旋转、平移和缩放查看模型。",
@@ -180,6 +182,7 @@
       controlsText: "Left drag adjusts model posture; bottom-right buttons adjust the camera view; wheel to zoom; double click to reset.",
       textureLoaded: "Loaded",
       textureUnused: "Not used",
+      defaultExampleTexture: "Default example",
       projectionEmpty: "Load a model first",
       statusWebglUnsupported: "This browser does not support WebGL, so the 3D model cannot be displayed.",
       statusNoModel: "No loadable 3D file was found. Please choose OBJ, STL, GLB, or glTF.",
@@ -187,6 +190,7 @@
       statusUnsupportedKnown: "{format} is recognized, but this dependency-free version cannot load it directly yet. Please use the same model exported as OBJ, STL, or GLB.",
       statusUnsupported: "{format} is not supported yet.",
       statusLoaded: "Model loaded. You can rotate, pan, and zoom it.",
+      statusDefaultExampleLoaded: "Loaded the default common kingfisher example. You can also choose your own OBJ, STL, or GLB file for testing.",
       statusLoadFailed: "Load failed: {message}",
       statusCalibrationOn: "Calibration mode is on: click two points on the model surface. Click the button again to leave calibration mode.",
       statusCalibrationOff: "Calibration mode is off. You can continue rotating, panning, and zooming the model.",
@@ -203,6 +207,7 @@
   const state = {
     mesh: null,
     texture: null,
+    textureStatusKey: "textureUnused",
     cameraOrientation: [1, 0, 0, 0],
     orientation: [1, 0, 0, 0],
     zoom: 3.0,
@@ -431,7 +436,34 @@
   canvas.addEventListener("contextmenu", (event) => event.preventDefault());
 
   applyLanguage();
+  loadDefaultExample();
   requestAnimationFrame(draw);
+
+  function loadDefaultExample() {
+    if (!window.DEFAULT_KINGFISHER_EXAMPLE) return;
+    const example = window.DEFAULT_KINGFISHER_EXAMPLE;
+    try {
+      setMesh(normalizeMesh(example.mesh));
+      state.texture = null;
+      state.textureStatusKey = "defaultExampleTexture";
+      resetCamera();
+      state.projectionDirty = true;
+      state.projectionLastUpdate = performance.now();
+      dropOverlay.classList.add("hidden");
+      metaFile.textContent = example.name;
+      metaFormat.textContent = example.format;
+      metaVertices.textContent = String(state.mesh.vertexCount);
+      metaTriangles.textContent = String(state.mesh.triangleCount);
+      metaSurfaceArea.textContent = formatMetric(state.mesh.surfaceArea, "unit²");
+      metaVolume.textContent = formatMetric(state.mesh.volume, "unit³");
+      metaTexture.textContent = t("defaultExampleTexture");
+      resetCalibration();
+      setStatusKey("statusDefaultExampleLoaded");
+    } catch (error) {
+      console.error(error);
+      setStatusKey("statusLoadFailed", { message: error.message });
+    }
+  }
 
   async function loadFiles(files) {
     if (!files.length) return;
@@ -466,8 +498,10 @@
       setMesh(loaded.mesh);
       if (loaded.textureImage) {
         state.texture = createImageTexture(loaded.textureImage);
+        state.textureStatusKey = "textureLoaded";
       } else {
         state.texture = null;
+        state.textureStatusKey = "textureUnused";
       }
       resetCamera();
       state.projectionDirty = true;
@@ -479,7 +513,7 @@
       metaTriangles.textContent = String(state.mesh.triangleCount);
       metaSurfaceArea.textContent = formatMetric(state.mesh.surfaceArea, "unit²");
       metaVolume.textContent = formatMetric(state.mesh.volume, "unit³");
-      metaTexture.textContent = t(loaded.textureImage ? "textureLoaded" : "textureUnused");
+      metaTexture.textContent = t(state.textureStatusKey);
       resetCalibration();
       setStatusKey("statusLoaded");
     } catch (error) {
@@ -1723,7 +1757,7 @@
     calibrationToggle.textContent = t(state.calibrationActive ? "calibrationActive" : "calibrationStart");
     statusEl.textContent = t(state.statusKey, state.statusVars);
     if (state.mesh) {
-      metaTexture.textContent = state.texture ? t("textureLoaded") : t("textureUnused");
+      metaTexture.textContent = t(state.textureStatusKey);
     }
     updateCalibrationReadout();
     state.projectionDirty = true;
