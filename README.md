@@ -2,9 +2,10 @@
 
 This is the first rebuilt stage of the project: a dependency-free browser viewer for animal 3D models.
 
-The viewer includes a lightweight default common kingfisher example derived
-from the project OBJ model. It loads automatically when `index.html` is opened,
-so new users can test the interface before selecting their own files.
+The viewer includes the project common kingfisher OBJ example generated from
+Tencent Hunyuan 3D, with its MTL file and texture images. It loads
+automatically when `index.html` is opened, so new users can test the interface
+before selecting their own files.
 
 ## How to use
 

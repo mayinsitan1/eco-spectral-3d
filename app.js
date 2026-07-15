@@ -439,12 +439,25 @@
   loadDefaultExample();
   requestAnimationFrame(draw);
 
-  function loadDefaultExample() {
+  async function loadDefaultExample() {
     if (!window.DEFAULT_KINGFISHER_EXAMPLE) return;
     const example = window.DEFAULT_KINGFISHER_EXAMPLE;
     try {
-      setMesh(normalizeMesh(example.mesh));
-      state.texture = null;
+      let loaded = null;
+      if (example.compressedObjGzipBase64Global && window[example.compressedObjGzipBase64Global]) {
+        setStatusKey("statusReading", { name: example.name });
+        loaded = await loadObjFromCompressedExample(example);
+      } else if (example.objPath) {
+        setStatusKey("statusReading", { name: example.name });
+        loaded = await loadObjFromUrl(example.objPath);
+      } else if (example.mesh) {
+        loaded = { mesh: normalizeMesh(example.mesh), textureImage: null };
+      } else {
+        return;
+      }
+
+      setMesh(loaded.mesh);
+      state.texture = loaded.textureImage ? createImageTexture(loaded.textureImage) : null;
       state.textureStatusKey = "defaultExampleTexture";
       resetCamera();
       state.projectionDirty = true;
@@ -562,6 +575,86 @@
     }
 
     return { mesh: parsed.mesh, textureImage };
+  }
+
+  async function loadObjFromCompressedExample(example) {
+    const chunks = window[example.compressedObjGzipBase64Global];
+    const text = await inflateGzipBase64Text(chunks);
+    const parsed = parseObj(text);
+    let textureImage = null;
+
+    if (example.texturePath) {
+      textureImage = await imageFromUrl(new URL(example.texturePath, window.location.href));
+    }
+
+    return { mesh: parsed.mesh, textureImage };
+  }
+
+  async function loadObjFromUrl(objPath) {
+    const objUrl = new URL(objPath, window.location.href);
+    const text = await readTextUrl(objUrl);
+    const parsed = parseObj(text);
+    let textureImage = null;
+
+    if (parsed.materialLibrary) {
+      const mtlUrl = new URL(parsed.materialLibrary, objUrl);
+      const mtl = parseMtl(await readTextUrl(mtlUrl));
+      if (mtl.diffuseTexture) {
+        const textureUrl = new URL(mtl.diffuseTexture, mtlUrl);
+        textureImage = await imageFromUrl(textureUrl);
+      }
+    }
+
+    return { mesh: parsed.mesh, textureImage };
+  }
+
+  async function inflateGzipBase64Text(chunks) {
+    if (!("DecompressionStream" in window)) {
+      throw new Error("This browser cannot unpack the built-in example. Please choose the OBJ file from the examples folder manually.");
+    }
+
+    const binary = atob(chunks.join(""));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+    return await new Response(stream).text();
+  }
+
+  async function readTextUrl(url) {
+    try {
+      const response = await fetch(url.href);
+      if (response.ok || url.protocol === "file:") {
+        return await response.text();
+      }
+      throw new Error("HTTP " + response.status);
+    } catch (fetchError) {
+      return new Promise((resolve, reject) => {
+        const request = new XMLHttpRequest();
+        request.open("GET", url.href, true);
+        request.overrideMimeType("text/plain; charset=utf-8");
+        request.onload = () => {
+          if (request.status === 0 || (request.status >= 200 && request.status < 300)) {
+            resolve(request.responseText);
+          } else {
+            reject(new Error("Could not read " + url.href));
+          }
+        };
+        request.onerror = () => reject(fetchError);
+        request.send();
+      });
+    }
+  }
+
+  function imageFromUrl(url) {
+    return new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("Could not load texture " + url.href));
+      image.src = url.href;
+    });
   }
 
   function parseObj(text) {
